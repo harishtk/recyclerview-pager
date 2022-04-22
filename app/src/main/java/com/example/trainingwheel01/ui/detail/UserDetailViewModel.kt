@@ -16,7 +16,6 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import javax.inject.Inject
 
-@HiltViewModel
 class UserDetailViewModel @AssistedInject constructor(
     @Assisted private val userId: String,
     private val repository: DefaultRepository
@@ -29,7 +28,7 @@ class UserDetailViewModel @AssistedInject constructor(
             .map { UiState(it) }
             .stateIn(
                 scope = viewModelScope,
-                started = SharingStarted.WhileSubscribed(stopTimeoutMillis = 1000),
+                started = SharingStarted.WhileSubscribed(stopTimeoutMillis = 5000),
                 initialValue = UiState(Result.Loading)
             )
     }

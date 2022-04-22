@@ -4,12 +4,22 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.activity.OnBackPressedCallback
+import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
+import androidx.lifecycle.lifecycleScope
+import androidx.navigation.fragment.findNavController
+import com.bumptech.glide.Glide
 import com.example.trainingwheel01.R
+import com.example.trainingwheel01.data.Result
+import com.example.trainingwheel01.data.succeeded
 import com.example.trainingwheel01.databinding.FragmentUserDetailBinding
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.map
+import timber.log.Timber
 import javax.inject.Inject
 
 @AndroidEntryPoint
@@ -23,6 +33,18 @@ class UserDetailFragment : Fragment() {
     @Inject lateinit var assistedFactory: UserDetailViewModel.Factory
     private val viewModel: UserDetailViewModel by viewModels {
         UserDetailViewModel.provideFactory(assistedFactory, userId)
+    }
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+
+        val callback: OnBackPressedCallback =
+            object : OnBackPressedCallback(true) {
+                override fun handleOnBackPressed() {
+                    findNavController().popBackStack()
+                }
+            }
+        requireActivity().onBackPressedDispatcher.addCallback(this, callback)
     }
 
     override fun onCreateView(
@@ -45,6 +67,18 @@ class UserDetailFragment : Fragment() {
     private fun FragmentUserDetailBinding.bindState(
         uiState: StateFlow<UiState>
     ) {
-
+        lifecycleScope.launchWhenCreated {
+            uiState.collectLatest {
+                Timber.d("User Detail: ${it.userData}")
+                progressBar.isVisible = it.userData is Result.Loading
+                if (it.userData.succeeded) {
+                    val userData = (it.userData as Result.Success).data
+                    Glide.with(profileImage)
+                        .load(userData.photoLarge)
+                        .into(profileImage)
+                    name.text = userData.name
+                }
+            }
+        }
     }
 }
