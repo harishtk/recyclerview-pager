@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <dimen name="repo_name_size">24sp</dimen>
+    <dimen name="row_item_margin_vertical">12dp</dimen>
+    <dimen name="error_text_size">24sp</dimen>
+</resources>

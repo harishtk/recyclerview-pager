@@ -31,6 +31,10 @@ android {
     }
     kotlinOptions {
         jvmTarget = '1.8'
+        freeCompilerArgs += ["-Xopt-in=kotlin.RequiresOptIn"]
+    }
+    buildFeatures {
+        viewBinding = true
     }
 }
 
@@ -70,9 +74,11 @@ dependencies {
     kapt "androidx.room:room-compiler:$room_version"
 
     // Navigation
-    def nav_version = "2.3.0"
+    def nav_version = "2.4.2"
     implementation "androidx.navigation:navigation-fragment-ktx:$nav_version"
     implementation "androidx.navigation:navigation-ui-ktx:$nav_version"
+    // Feature module Support
+    implementation "androidx.navigation:navigation-dynamic-features-fragment:$nav_version"
 
     // Work
     def work_version_old = "2.4.0"
@@ -104,6 +110,9 @@ dependencies {
 
     // ViewPager2
     implementation("androidx.viewpager2:viewpager2:1.0.0")
+
+    // Google FlexBox
+    implementation("com.google.android.flexbox:flexbox:3.0.0")
 
     testImplementation 'junit:junit:4.13.2'
     androidTestImplementation 'androidx.test.ext:junit:1.1.3'

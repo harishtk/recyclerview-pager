@@ -14,6 +14,6 @@ interface ApiService {
     ): UserResponse
 
     companion object {
-        const val BASE_URL = "https://randomusers.me/"
+        const val BASE_URL = "https://randomuser.me/"
     }
 }
