@@ -11,6 +11,7 @@ import com.example.trainingwheel01.data.source.local.AppDatabase
 import com.example.trainingwheel01.data.source.remote.ApiService
 import com.example.trainingwheel01.data.source.remote.model.Result
 import retrofit2.HttpException
+import timber.log.Timber
 import java.io.IOException
 import javax.inject.Inject
 
@@ -29,16 +30,16 @@ class UserRemoteMediator @Inject constructor(
 
         val page = when (loadType) {
             LoadType.REFRESH -> {
-                val remoteKeys = getRemoteKeyClosestToCurrentPosition(state)
-                remoteKeys?.nextKey?.minus(1) ?: STARTING_INDEX
+                /*val remoteKeys = getRemoteKeyClosestToCurrentPosition(state)
+                remoteKeys?.nextKey?.minus(1) ?: STARTING_INDEX*/
+                STARTING_INDEX
             }
             LoadType.PREPEND -> {
-                val remoteKeys = getRemoteKeyForFirstItem(state)
+                /*val remoteKeys = getRemoteKeyForFirstItem(state)
                 val prevKey = remoteKeys?.prevKey
-                if (prevKey == null) {
-                    return MediatorResult.Success(endOfPaginationReached = remoteKeys != null)
-                }
-                prevKey
+                    ?: return MediatorResult.Success(endOfPaginationReached = remoteKeys != null)
+                prevKey*/
+                return MediatorResult.Success(endOfPaginationReached = true)
             }
             LoadType.APPEND -> {
                 val remoteKeys = getRemoteKeyForLastItem(state)
@@ -50,9 +51,12 @@ class UserRemoteMediator @Inject constructor(
             }
         }
 
-        try {
-            val usersResponse = apiService.getUsers(NETWORK_PAGE_SIZE, page, seed)
+        Timber.d("Mediator: page=$page")
 
+        try {
+            val usersResponse = apiService.getUsers(NETWORK_PAGE_SIZE, page/*, seed*/)
+
+            seed = usersResponse.info.seed
             val users = usersResponse.results.map { fromResult(it) }
             val endOfPaginationReached = users.isEmpty() || users.size < NETWORK_PAGE_SIZE
             database.withTransaction {
@@ -62,8 +66,9 @@ class UserRemoteMediator @Inject constructor(
                 }
                 val prevKey = if (page == STARTING_INDEX) null else page - 1
                 val nextKey = if (endOfPaginationReached) null else page + 1
+                Timber.d("Mediator: page prev=$prevKey next=$nextKey endOfPaginationReached=$endOfPaginationReached")
                 val keys = users.map {
-                    UserRemoteKeys(email = it.email, prevKey = prevKey, nextKey = nextKey)
+                    UserRemoteKeys(uuid = it.uuid, prevKey = prevKey, nextKey = nextKey)
                 }
                 database.userRemoteKeysDao().insertAll(keys)
                 database.usersDao().insertAll(users)
@@ -78,6 +83,7 @@ class UserRemoteMediator @Inject constructor(
 
     private fun fromResult(result: Result): UserData {
         return UserData(
+            uuid = result.login.uuid,
             name = result.name.first + " " + result.name.last,
             email = result.email,
             nat = result.nat,
@@ -92,21 +98,23 @@ class UserRemoteMediator @Inject constructor(
             postCode = result.location.postCode,
             state = result.location.state,
             streetName = result.location.street.name,
-            streetNumber = result.location.street.number
+            streetNumber = result.location.street.number,
+            registeredOn = result.registered.date,
+            createdAt = System.currentTimeMillis()
         )
     }
 
     private suspend fun getRemoteKeyForLastItem(state: PagingState<Int, UserData>): UserRemoteKeys? {
         return state.pages.lastOrNull() { it.data.isNotEmpty() }?.data?.lastOrNull()
             ?.let { userData ->
-                database.userRemoteKeysDao().remoteKeysUserEmail(userData.email)
+                database.userRemoteKeysDao().remoteKeysUserUuid(userData.uuid)
             }
     }
 
     private suspend fun getRemoteKeyForFirstItem(state: PagingState<Int, UserData>): UserRemoteKeys? {
         return state.pages.firstOrNull() { it.data.isNotEmpty() }?.data?.firstOrNull()
             ?.let { userData ->
-                database.userRemoteKeysDao().remoteKeysUserEmail(userData.email)
+                database.userRemoteKeysDao().remoteKeysUserUuid(userData.uuid)
             }
     }
 
@@ -114,8 +122,8 @@ class UserRemoteMediator @Inject constructor(
         state: PagingState<Int, UserData>
     ): UserRemoteKeys? {
         return state.anchorPosition?.let { anchorPosition ->
-            state.closestItemToPosition(anchorPosition)?.email?.let {
-                database.userRemoteKeysDao().remoteKeysUserEmail(it)
+            state.closestItemToPosition(anchorPosition)?.uuid?.let {
+                database.userRemoteKeysDao().remoteKeysUserUuid(it)
             }
         }
     }

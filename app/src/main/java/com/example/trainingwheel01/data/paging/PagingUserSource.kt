@@ -16,10 +16,10 @@ class PagingUserSource(
     private var seed = ""
 
     override suspend fun load(params: LoadParams<Int>): LoadResult<Int, UserData> {
-        Timber.d("LoadResult: LoadParams $params")
+        Timber.d("LoadResult: LoadParams $params ${params.loadSize}")
         val position = params.key ?: STARTING_INDEX
         return try {
-            val response = apiService.getUsers(limit = NETWORK_PAGE_SIZE, page = position, seed = seed)
+            val response = apiService.getUsers(limit = NETWORK_PAGE_SIZE, page = position/*, seed = seed*/)
             val userData: MutableList<UserData> = mutableListOf()
             seed = response.info.seed
             if (response.results.isNotEmpty()) {
@@ -45,6 +45,7 @@ class PagingUserSource(
 
     private fun fromResult(result: Result): UserData {
         return UserData(
+            uuid = result.login.uuid,
             name = result.name.first + " " + result.name.last,
             email = result.email,
             nat = result.nat,
@@ -59,15 +60,18 @@ class PagingUserSource(
             postCode = result.location.postCode,
             state = result.location.state,
             streetName = result.location.street.name,
-            streetNumber = result.location.street.number
+            streetNumber = result.location.street.number,
+            registeredOn = result.registered.date,
+            createdAt = System.currentTimeMillis()
         )
     }
 
     override fun getRefreshKey(state: PagingState<Int, UserData>): Int? {
-        return state.anchorPosition?.let { anchorPosition ->
+        return STARTING_INDEX
+        /*return state.anchorPosition?.let { anchorPosition ->
             state.closestPageToPosition(anchorPosition)?.prevKey?.plus(1)
                 ?: state.closestPageToPosition(anchorPosition)?.nextKey?.minus(1)
-        }
+        }*/
     }
 
 }

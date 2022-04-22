@@ -14,8 +14,20 @@ data class Result(
     val nat: String,
     val phone: String,
     val name: Name,
-    val location: Location
+    val location: Location,
+    val registered: Registered,
+    val login: Login
 ) : Serializable
+
+data class Login(
+    val uuid: String,
+    val username: String
+)
+
+data class Registered(
+    val date: String,
+    val age: Int
+)
 
 data class Location(
     val country: String,

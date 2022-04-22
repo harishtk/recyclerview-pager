@@ -10,7 +10,7 @@ interface ApiService {
     suspend fun getUsers(
         @Query("results") limit: Int,
         @Query("page") page: Int,
-        @Query("seed") seed: String
+//        @Query("seed") seed: String
     ): UserResponse
 
     companion object {

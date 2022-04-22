@@ -2,12 +2,20 @@ package com.example.trainingwheel01.data.entity
 
 import androidx.room.ColumnInfo
 import androidx.room.Entity
+import androidx.room.Index
 import androidx.room.PrimaryKey
 import com.google.gson.annotations.SerializedName
 import java.io.Serializable
 
-@Entity(tableName = "users")
+@Entity(
+    tableName = "users",
+    indices = [
+        Index(value = arrayOf("name"), unique = false)
+    ]
+)
 data class UserData(
+    @PrimaryKey
+    val uuid: String,
     val name: String,
     val email: String,
     val nat: String,
@@ -22,8 +30,7 @@ data class UserData(
     val postCode: String,
     val state: String,
     val streetName: String,
-    val streetNumber: Int
-) : Serializable {
-    @PrimaryKey(autoGenerate = true)
-    var id: Long? = null
-}
+    val streetNumber: Int,
+    val registeredOn: String,
+    val createdAt: Long
+) : Serializable

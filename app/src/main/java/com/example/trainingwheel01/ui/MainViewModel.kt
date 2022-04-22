@@ -34,7 +34,7 @@ class MainViewModel @Inject constructor(
             .onStart { emit(UiAction.Search(query = lastQuery)) }
 
         // TODO: filter results for query
-        pagingUserDataFlow = repository.getUsers()
+        pagingUserDataFlow = repository.getUsers(filter = "")
             .cachedIn(viewModelScope)
 
         state = searches

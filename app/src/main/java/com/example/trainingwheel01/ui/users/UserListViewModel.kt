@@ -5,6 +5,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.paging.PagingData
 import androidx.paging.cachedIn
+import androidx.paging.filter
 import com.example.trainingwheel01.data.entity.UserData
 import com.example.trainingwheel01.data.repository.DefaultRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -33,8 +34,12 @@ class UserListViewModel @Inject constructor(
             .onStart { emit(UiAction.Search(query = lastQuery)) }
 
         // TODO: filter results for query
-        pagingUserDataFlow = repository.getUsers()
+        pagingUserDataFlow = repository.getUsers(filter = "")
             .cachedIn(viewModelScope)
+        /*.combine(searches) { pagingData, searchAction ->
+            pagingData.filter { it.name.startsWith(searchAction.query, ignoreCase = true) }
+        }
+        .cachedIn(viewModelScope)*/
 
         state = searches
             .map { search ->
@@ -63,4 +68,4 @@ data class UiState(
 )
 
 private const val LAST_SEARCH_QUERY: String = "last_search_query"
-private const val DEFAULT_QUERY: String = "John"
+private const val DEFAULT_QUERY: String = ""

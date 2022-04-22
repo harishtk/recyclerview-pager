@@ -6,7 +6,7 @@ import androidx.room.PrimaryKey
 @Entity(tableName = "remote_keys")
 class UserRemoteKeys(
     @PrimaryKey
-    val email: String,
+    val uuid: String,
     val prevKey: Int?,
     val nextKey: Int?
 )
