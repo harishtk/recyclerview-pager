@@ -112,6 +112,7 @@ class MainActivity : AppCompatActivity() {
                         settings[WEATHER_CITY_NAME] = cityName
                     }
                 }
+                binding.updateWeatherInfo(lat, lng, cityName)
                 fusedLocationClient.removeLocationUpdates(locationCallback)
             }
         }
