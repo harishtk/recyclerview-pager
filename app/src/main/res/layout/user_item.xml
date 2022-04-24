@@ -15,7 +15,8 @@
         app:layout_constraintDimensionRatio="H,1:1"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintTop_toTopOf="parent"
+        android:transitionName="orofile_image"/>
 
     <TextView android:id="@+id/text"
         android:layout_width="wrap_content"
@@ -25,7 +26,8 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toBottomOf="@id/imageView"
-        tools:text="@tools:sample/full_names" />
+        tools:text="@tools:sample/full_names"
+        android:transitionName="profile_name"/>
 
     <TextView android:id="@+id/address"
         android:layout_width="wrap_content"

@@ -36,8 +36,7 @@ class DefaultRepository @Inject constructor(
     }*/
 
     @OptIn(ExperimentalPagingApi::class)
-    fun getUsers(filter: String): Flow<PagingData<UserData>> {
-        Timber.d("Filter: $filter")
+    fun getUsers(): Flow<PagingData<UserData>> {
         val pagingSourceFactory = {
             database.usersDao().getUsers()
             /*if (filter.trim().isNotEmpty()) {
@@ -54,6 +53,29 @@ class DefaultRepository @Inject constructor(
             remoteMediator = UserRemoteMediator(
                 apiService, database
             ),
+            pagingSourceFactory = pagingSourceFactory
+        ).flow
+    }
+
+    @OptIn(ExperimentalPagingApi::class)
+    fun getUsers(filter: String): Flow<PagingData<UserData>> {
+        Timber.d("Filter: $filter")
+        val pagingSourceFactory = {
+            database.usersDao().getUsersByName("%$filter%")
+            /*if (filter.trim().isNotEmpty()) {
+                database.usersDao().getUsersByName(filter)
+            } else {
+
+            }*/
+        }
+        return Pager(
+            config = PagingConfig(
+                pageSize = NETWORK_PAGE_SIZE,
+                enablePlaceholders = false
+            ),
+            /*remoteMediator = UserRemoteMediator(
+                apiService, database
+            ),*/
             pagingSourceFactory = pagingSourceFactory
         ).flow
     }

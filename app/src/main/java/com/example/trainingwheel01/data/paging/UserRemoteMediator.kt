@@ -100,7 +100,9 @@ class UserRemoteMediator @Inject constructor(
             streetName = result.location.street.name,
             streetNumber = result.location.street.number,
             registeredOn = result.registered.date,
-            createdAt = System.currentTimeMillis()
+            createdAt = System.currentTimeMillis(),
+            dob = result.dob.date,
+            age = result.dob.age
         )
     }
 

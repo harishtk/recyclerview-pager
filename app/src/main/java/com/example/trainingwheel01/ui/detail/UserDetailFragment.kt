@@ -77,8 +77,31 @@ class UserDetailFragment : Fragment() {
                         .load(userData.photoLarge)
                         .into(profileImage)
                     name.text = userData.name
+                    phone.text = userData.phone
+                    email.text = userData.email
+                    address.text = "${userData.streetNumber}, ${userData.streetName}"
+                    country.text = "${userData.country}, ${userData.nat}"
+                }
+
+                if (it.userWeatherDataFlow.succeeded) {
+                    val weatherData = (it.userWeatherDataFlow as Result.Success).data
+                    Timber.d("Weather data: ${weatherData}")
+                    val weatherIconCode = weatherData.weather.first().icon
+                    val weatherIconUrl = "https://openweathermap.org/img/w/$weatherIconCode.png"
+
+                    Glide.with(weatherIcon)
+                        .load(weatherIconUrl)
+                        .into(weatherIcon)
+                    weatherDataText.text = weatherData.weather.first().main
                 }
             }
         }
     }
 }
+
+private val POSSIBLE_WEATHER_CONDITIONS = arrayOf(
+    "Clouds",
+    "Clear",
+    "Snow",
+    "Rain",
+)

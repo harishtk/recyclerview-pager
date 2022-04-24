@@ -13,12 +13,11 @@ import com.bumptech.glide.request.RequestListener
 import com.bumptech.glide.request.target.Target
 import com.example.trainingwheel01.data.entity.UserData
 import com.example.trainingwheel01.databinding.UserItemBinding
-import jp.wasabeef.glide.transformations.CropCircleTransformation
 import timber.log.Timber
 import java.lang.IllegalStateException
 
 class UsersAdapter(
-    private val onItemClick: (Int, UserData) -> Unit
+    private val onItemClick: (Int, UserData, RecyclerView.ViewHolder) -> Unit
 ) : PagingDataAdapter<UserData, RecyclerView.ViewHolder>(USER_COMPARATOR) {
 
     companion object {
@@ -46,7 +45,7 @@ class UsersAdapter(
 
 class UserViewHolder(
     private val binding: UserItemBinding,
-    private val onItemClick: (Int, UserData) -> Unit
+    private val onItemClick: (Int, UserData, RecyclerView.ViewHolder) -> Unit
 ) : RecyclerView.ViewHolder(binding.root) {
 
     fun bind(userData: UserData?) {
@@ -87,12 +86,12 @@ class UserViewHolder(
                 })
                 .into(binding.imageView)
 
-            itemView.setOnClickListener { onItemClick(bindingAdapterPosition, userData) }
+            itemView.setOnClickListener { onItemClick(bindingAdapterPosition, userData, this) }
         }
     }
 
     companion object {
-        fun create(parent: ViewGroup, onItemClick: (Int, UserData) -> Unit): UserViewHolder {
+        fun create(parent: ViewGroup, onItemClick: (Int, UserData, RecyclerView.ViewHolder) -> Unit): UserViewHolder {
             val binding = UserItemBinding.inflate(
                 LayoutInflater.from(parent.context),
                 parent,

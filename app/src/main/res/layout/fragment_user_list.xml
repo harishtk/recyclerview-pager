@@ -19,6 +19,8 @@
             android:layout_marginTop="8dp"
             android:layout_marginLeft="8dp"
             android:layout_marginRight="8dp"
+            app:endIconDrawable="@drawable/ic_baseline_cancel_24"
+            app:endIconMode="clear_text"
             style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
@@ -31,6 +33,7 @@
                 android:imeOptions="actionSearch"
                 android:inputType="textNoSuggestions"
                 android:selectAllOnFocus="true"
+                android:maxLines="1"
                 tools:text="Android"/>
         </com.google.android.material.textfield.TextInputLayout>
 

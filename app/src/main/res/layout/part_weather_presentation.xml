@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content">
+
+    <RelativeLayout android:id="@+id/weather_placeholder_layout"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent">
+
+        <TextView android:id="@+id/weather_placeholder_title"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:text="+ Add a city"
+            android:layout_centerVertical="true"/>
+
+        <ImageView
+            android:id="@+id/weather_placeholder_icon"
+            android:layout_width="60dp"
+            android:layout_height="60dp"
+            android:src="@drawable/cloudy_day_3"
+            android:layout_toEndOf="@id/weather_placeholder_title"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+    </RelativeLayout>
+
+    <androidx.constraintlayout.widget.Group android:id="@+id/weather_info_group"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:constraint_referenced_ids="weather_city,weather_description,weather_icon,weather_temperature"
+        tools:visibility="gone"/>
+
+    <TextView
+        android:id="@+id/weather_temperature"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginHorizontal="8dp"
+        android:textAppearance="?attr/textAppearanceBody2"
+        android:textStyle="bold"
+        app:layout_constraintBottom_toBottomOf="@+id/weather_city"
+        app:layout_constraintEnd_toStartOf="@id/weather_city"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="@+id/weather_city"
+        tools:text="31\u00B0" />
+
+    <TextView
+        android:id="@+id/weather_city"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textAppearance="?attr/textAppearanceBody2"
+        app:layout_constraintBottom_toTopOf="@id/weather_description"
+        app:layout_constraintEnd_toStartOf="@id/weather_icon"
+        app:layout_constraintStart_toEndOf="@id/weather_temperature"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_chainStyle="packed"
+        tools:text="Coimbatore" />
+
+    <TextView
+        android:id="@+id/weather_description"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textAppearance="?attr/textAppearanceCaption"
+        android:textSize="11sp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toStartOf="@id/weather_icon"
+        app:layout_constraintTop_toBottomOf="@id/weather_city"
+        app:layout_constraintVertical_chainStyle="packed"
+        tools:text="Thunderstorm" />
+
+    <ImageView
+        android:id="@+id/weather_icon"
+        android:layout_width="60dp"
+        android:layout_height="60dp"
+        android:src="@drawable/thunder"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>

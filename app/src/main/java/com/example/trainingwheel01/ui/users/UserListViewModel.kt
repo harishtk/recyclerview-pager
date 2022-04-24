@@ -21,6 +21,7 @@ class UserListViewModel @Inject constructor(
     val state: StateFlow<UiState>
 
     val pagingUserDataFlow: Flow<PagingData<UserData>>
+    val pagingUserSearchResults: Flow<PagingData<UserData>>
 
     val accept: (UiAction) -> Unit
 
@@ -34,8 +35,10 @@ class UserListViewModel @Inject constructor(
             .onStart { emit(UiAction.Search(query = lastQuery)) }
 
         // TODO: filter results for query
-        pagingUserDataFlow = repository.getUsers(filter = "")
+        pagingUserDataFlow = repository.getUsers()
             .cachedIn(viewModelScope)
+        pagingUserSearchResults = searches
+            .flatMapLatest { repository.getUsers(filter = it.query) }
         /*.combine(searches) { pagingData, searchAction ->
             pagingData.filter { it.name.startsWith(searchAction.query, ignoreCase = true) }
         }
@@ -43,7 +46,7 @@ class UserListViewModel @Inject constructor(
 
         state = searches
             .map { search ->
-                UiState(query = search.query)
+                UiState(query = search.query, searching = search.query.isNotEmpty())
             }
             .stateIn(
                 scope = viewModelScope,
@@ -64,7 +67,8 @@ sealed class UiAction {
 
 data class UiState(
     val query: String = DEFAULT_QUERY,
-    val loading: Boolean = false
+    val loading: Boolean = false,
+    val searching: Boolean = false
 )
 
 private const val LAST_SEARCH_QUERY: String = "last_search_query"

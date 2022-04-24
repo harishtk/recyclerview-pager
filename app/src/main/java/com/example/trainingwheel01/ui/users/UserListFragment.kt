@@ -7,25 +7,22 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.view.inputmethod.EditorInfo
+import android.widget.ImageView
+import android.widget.TextView
 import android.widget.Toast
 import androidx.core.view.isVisible
 import androidx.core.widget.addTextChangedListener
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
-import androidx.navigation.NavDirections
+import androidx.navigation.fragment.FragmentNavigatorExtras
 import androidx.navigation.fragment.findNavController
 import androidx.paging.LoadState
 import androidx.paging.PagingData
 import androidx.recyclerview.widget.GridLayoutManager
-import androidx.recyclerview.widget.StaggeredGridLayoutManager
 import com.example.trainingwheel01.R
 import com.example.trainingwheel01.data.entity.UserData
 import com.example.trainingwheel01.databinding.FragmentUserListBinding
-import com.google.android.flexbox.FlexDirection
-import com.google.android.flexbox.FlexWrap
-import com.google.android.flexbox.FlexboxLayoutManager
-import com.google.android.flexbox.JustifyContent
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.*
 import timber.log.Timber
@@ -51,6 +48,7 @@ class UserListFragment : Fragment() {
         binding.bindState(
             uiState = viewModel.state,
             pagingData = viewModel.pagingUserDataFlow,
+            pagingSearchResults = viewModel.pagingUserSearchResults,
             uiActions = viewModel.accept
         )
     }
@@ -58,12 +56,17 @@ class UserListFragment : Fragment() {
     private fun FragmentUserListBinding.bindState(
         uiState: StateFlow<UiState>,
         pagingData: Flow<PagingData<UserData>>,
+        pagingSearchResults: Flow<PagingData<UserData>>,
         uiActions: (UiAction) -> Unit
     ) {
-        val usersAdapter = UsersAdapter { position, userData ->
+        val usersAdapter = UsersAdapter { position, userData, viewHolder ->
             // TODO: goto detail
             val directions = UserListFragmentDirections.actionUserListFragmentToUserDetailFragment(userId = userData.uuid)
-            findNavController().navigate(directions)
+            val extras = FragmentNavigatorExtras(
+                viewHolder.itemView.findViewById<ImageView>(R.id.imageView) to "profile_image",
+                viewHolder.itemView.findViewById<TextView>(R.id.text) to "profile_name"
+            )
+            findNavController().navigate(directions.actionId, directions.arguments, null, extras)
         }
         val header = UserLoadStateAdapter { usersAdapter.retry() }
         list.adapter = usersAdapter.withLoadStateHeaderAndFooter(
@@ -100,7 +103,8 @@ class UserListFragment : Fragment() {
             header = header,
             usersAdapter = usersAdapter,
             uiState = uiState,
-            pagingData = pagingData
+            pagingData = pagingData,
+            pagingSearchResults = pagingSearchResults
         )
     }
 
@@ -157,15 +161,31 @@ class UserListFragment : Fragment() {
         header: UserLoadStateAdapter,
         usersAdapter: UsersAdapter,
         uiState: StateFlow<UiState>,
-        pagingData: Flow<PagingData<UserData>>
+        pagingData: Flow<PagingData<UserData>>,
+        pagingSearchResults: Flow<PagingData<UserData>>
     ) {
         retryButton.setOnClickListener { usersAdapter.retry() }
 
         lifecycleScope.launchWhenCreated {
-            pagingData.collectLatest {
-                Timber.d("Data fetched: $it")
-                usersAdapter.submitData(it)
-            }
+
+            uiState
+                .map { it.searching }
+                .distinctUntilChanged()
+                .collectLatest { searching ->
+                    Timber.d("Searching: $searching")
+                    if (searching) {
+                        usersAdapter.submitData(PagingData.empty())
+                        pagingSearchResults.collectLatest {
+                            usersAdapter.submitData(it)
+                        }
+                    } else {
+                        usersAdapter.submitData(PagingData.empty())
+                        pagingData.collectLatest {
+                            Timber.d("Data fetched: $it")
+                            usersAdapter.submitData(it)
+                        }
+                    }
+                }
         }
 
         lifecycleScope.launchWhenCreated {

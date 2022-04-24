@@ -32,5 +32,7 @@ data class UserData(
     val streetName: String,
     val streetNumber: Int,
     val registeredOn: String,
-    val createdAt: Long
+    val createdAt: Long,
+    val dob: String,
+    val age: Int
 ) : Serializable

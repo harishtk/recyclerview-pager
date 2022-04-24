@@ -5,63 +5,68 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.paging.PagingData
 import androidx.paging.cachedIn
+import com.example.trainingwheel01.data.Result
 import com.example.trainingwheel01.data.entity.UserData
 import com.example.trainingwheel01.data.repository.DefaultRepository
+import com.example.trainingwheel01.data.repository.WeatherRepository
+import com.example.trainingwheel01.data.source.remote.model.WeatherResponse
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
+import timber.log.Timber
 import javax.inject.Inject
 
 @HiltViewModel
 class MainViewModel @Inject constructor(
-    private val repository: DefaultRepository,
+    private val weatherRepository: WeatherRepository,
     private val savedStateHandle: SavedStateHandle
 ) : ViewModel() {
 
     val state: StateFlow<UiState>
 
-    val pagingUserDataFlow: Flow<PagingData<UserData>>
-
     val accept: (UiAction) -> Unit
 
     init {
-        val lastQuery: String = savedStateHandle.get(LAST_SEARCH_QUERY) ?: DEFAULT_QUERY
         val actionStateFlow = MutableSharedFlow<UiAction>()
 
-        val searches = actionStateFlow
-            .filterIsInstance<UiAction.Search>()
+        val getWeather = actionStateFlow
+            .filterIsInstance<UiAction.GetWeather>()
             .distinctUntilChanged()
-            .onStart { emit(UiAction.Search(query = lastQuery)) }
+            .onStart { emit(UiAction.GetWeather(lat = "", lng = "")) }
 
-        // TODO: filter results for query
-        pagingUserDataFlow = repository.getUsers(filter = "")
-            .cachedIn(viewModelScope)
 
-        state = searches
-            .map { search ->
-                UiState(query = search.query)
+        val weatherDataFlow: Flow<Result<WeatherResponse>> = getWeather
+            .flatMapLatest {
+                Timber.tag("Location.Msg").d("Updating weather $it")
+                weatherRepository.getWeatherData(it.lat, it.lng)
+            }
+
+        state = weatherDataFlow
+            .map {
+                Timber.tag("Location.Msg").d("Mapping state: $it")
+                UiState(it)
             }
             .stateIn(
                 scope = viewModelScope,
                 started = SharingStarted.WhileSubscribed(stopTimeoutMillis = 5000),
-                initialValue = UiState(loading = true)
+                initialValue = UiState()
             )
 
         accept = { action ->
+            Timber.tag("Location.Msg").d("Action: $action")
             viewModelScope.launch { actionStateFlow.emit(action) }
         }
     }
 
+    // Expose the repo fun
+    fun getWeatherInfo(lat: String, lng: String) = weatherRepository.getWeatherData(lat, lng)
 }
 
 sealed class UiAction {
-    data class Search(val query: String) : UiAction()
+    data class GetWeather(val lat: String, val lng: String): UiAction()
 }
 
 data class UiState(
-    val query: String = DEFAULT_QUERY,
-    val loading: Boolean = false
+    val weatherData: Result<WeatherResponse> = Result.Loading
 )
-
-private const val LAST_SEARCH_QUERY: String = "last_search_query"
-private const val DEFAULT_QUERY: String = "John"

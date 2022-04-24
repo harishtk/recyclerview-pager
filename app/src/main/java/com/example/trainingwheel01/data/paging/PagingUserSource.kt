@@ -62,7 +62,9 @@ class PagingUserSource(
             streetName = result.location.street.name,
             streetNumber = result.location.street.number,
             registeredOn = result.registered.date,
-            createdAt = System.currentTimeMillis()
+            createdAt = System.currentTimeMillis(),
+            dob = result.dob.date,
+            age = result.dob.age
         )
     }
 
@@ -76,5 +78,5 @@ class PagingUserSource(
 
 }
 
-const val NETWORK_PAGE_SIZE = 10
+const val NETWORK_PAGE_SIZE = 25
 const val STARTING_INDEX    = 1

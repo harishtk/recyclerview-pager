@@ -6,31 +6,53 @@ import androidx.lifecycle.viewModelScope
 import com.example.trainingwheel01.data.Result
 import com.example.trainingwheel01.data.entity.UserData
 import com.example.trainingwheel01.data.repository.DefaultRepository
+import com.example.trainingwheel01.data.repository.WeatherRepository
+import com.example.trainingwheel01.data.source.remote.model.WeatherResponse
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
-import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.stateIn
-import javax.inject.Inject
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.*
+import org.json.JSONObject
+import timber.log.Timber
+import java.lang.IllegalStateException
 
+@OptIn(ExperimentalCoroutinesApi::class)
 class UserDetailViewModel @AssistedInject constructor(
     @Assisted private val userId: String,
-    private val repository: DefaultRepository
+    private val repository: DefaultRepository,
+    private val weatherRepository: WeatherRepository
 ) : ViewModel() {
 
     val state: StateFlow<UiState>
 
     init {
-        state = repository.getUserById(userId)
-            .map { UiState(it) }
+        val userDataFlow = repository.getUserById(userId)
+        val weatherData: Flow<Result<WeatherResponse>> = userDataFlow.transformLatest { result ->
+            when (result) {
+                is Result.Loading -> emit(Result.Loading)
+                is Result.Error -> emit(Result.Error(IllegalStateException("Failed to get weather data")))
+                is Result.Success -> {
+                    emitAll(weatherRepository.getWeatherData(result.data.latitude, result.data.longitude))
+                }
+            }
+        }
+        /*state = userDataFlow
+            .map { UiState(userData = it) }
+            .stateIn(
+                scope = viewModelScope,
+                started = SharingStarted.WhileSubscribed(stopTimeoutMillis = 5000),
+                initialValue = UiState(Result.Loading)
+            )*/
+        state = userDataFlow.combine(weatherData) { i, j ->
+            UiState(i, j)
+        }
             .stateIn(
                 scope = viewModelScope,
                 started = SharingStarted.WhileSubscribed(stopTimeoutMillis = 5000),
                 initialValue = UiState(Result.Loading)
             )
+
     }
 
     @AssistedFactory
@@ -52,5 +74,6 @@ class UserDetailViewModel @AssistedInject constructor(
 }
 
 data class UiState(
-    val userData: Result<UserData>
+    val userData: Result<UserData>,
+    val userWeatherDataFlow: Result<WeatherResponse> = Result.Loading
 )

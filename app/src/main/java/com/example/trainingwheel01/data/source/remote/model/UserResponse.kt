@@ -16,12 +16,18 @@ data class Result(
     val name: Name,
     val location: Location,
     val registered: Registered,
-    val login: Login
+    val login: Login,
+    val dob: Dob
 ) : Serializable
 
 data class Login(
     val uuid: String,
     val username: String
+)
+
+data class Dob(
+    val date: String,
+    val age: Int
 )
 
 data class Registered(
